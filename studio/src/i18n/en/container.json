@@ -42,8 +42,8 @@
 		"name": "Deployment Name"
 	},
 	"stateful": {
-		"description": "A StatefulSet is used to manage stateful applications. It ensures that each pod in the set has a unique, stable identity and maintains persistent storage across restarts.",
-		"name": "StatefulSet Name",
+		"description": "An Application maintains persistent storage and unique identity for each instance across restarts - ideal for databases, caches, and stateful services.",
+		"name": "Application Name",
 		"Retain": "Storage is not deleted when the app pod is deleted.",
 		"Delete": "Automatically deletes the storage when the app pod is deleted.",
 		"retention_policy_delete": "Retention Policy - On Delete",

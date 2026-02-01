@@ -1,6 +1,6 @@
 {
-	"name": "Agnost",
-	"short_name": "Agnost",
+	"name": "Hanzo Platform",
+	"short_name": "Hanzo",
 	"icons": [
 		{
 			"src": "/android-chrome-192x192.png",
@@ -13,7 +13,7 @@
 			"type": "image/png"
 		}
 	],
-	"theme_color": "#70A9FF",
-	"background_color": "#004DC9",
+	"theme_color": "#000000",
+	"background_color": "#000000",
 	"display": "standalone"
 }
