@@ -249,7 +249,7 @@ const router = createBrowserRouter(
 		},
 	],
 	{
-		basename: '/studio',
+		basename: '/',
 	},
 );
 
