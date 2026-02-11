@@ -15,12 +15,12 @@ hanzo-webhook:
     namespace: cert-manager
     serviceAccountName: cert-manager
   image:
-    repository: "hanzoai/gitops-webhook"
+    repository: "hanzoai/platform-webhook"
     tag: "latest"
 
 # Hanzo Platform images (Docker Hub)
 platform:
-  image: "hanzoai/gitops-platform"
+  image: "hanzoai/platform-api"
   tag: "latest"
   extraEnv:
     - name: OAUTH_URL
@@ -31,15 +31,15 @@ platform:
       value: "hanzo"
 
 sync:
-  image: "hanzoai/gitops-sync"
+  image: "hanzoai/platform-sync"
   tag: "latest"
 
 monitor:
-  image: "hanzoai/gitops-monitor"
+  image: "hanzoai/platform-monitor"
   tag: "latest"
 
 studio:
-  image: "hanzoai/gitops-studio"
+  image: "hanzoai/platform-studio"
   tag: "latest"
   extraEnv:
     - name: VITE_DOCS_URL
