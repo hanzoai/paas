@@ -15,15 +15,15 @@ export default function AuthLayout({ className, error, title, subtitle }: AuthLa
 	return (
 		<div
 			className={cn(
-				'h-screen m-auto dark:bg-base flex flex-col items-center justify-center',
+				'h-screen m-auto bg-black flex flex-col items-center justify-center',
 				className,
 			)}
 		>
-			<Hanzo className='size-24' />
+			<Hanzo className='size-16 text-white mb-4' />
 			<div className='space-y-8 max-w-lg'>
 				<div className='space-y-2 text-center'>
-					<h1 className='text-3xl font-bold'>{title}</h1>
-					<p className='text-subtle'>{subtitle}</p>
+					<h1 className='text-3xl font-bold text-white'>{title}</h1>
+					<p className='text-neutral-400'>{subtitle}</p>
 				</div>
 				{error?.error && (
 					<Alert className='!max-w-full' variant='error'>

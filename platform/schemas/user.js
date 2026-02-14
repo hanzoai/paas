@@ -7,9 +7,14 @@ import {
 	userStatus,
 } from "../config/constants.js";
 import userCtrl from "../controllers/user.js";
-import { isValidGitProviderAccessToken } from "../handlers/git.js";
+import {
+	isValidGitProviderAccessToken,
+	isValidProviderAccessToken,
+} from "../handlers/git.js";
 import { getK8SResource } from "../handlers/util.js";
 import helper from "../util/helper.js";
+
+const loginProviderTypes = ["hanzo", ...providerTypes];
 
 /**
  * Models the user information. Users will be associated with organizations and projects. Project users will be part of the organization
@@ -89,6 +94,63 @@ export const UserModel = mongoose.model(
 export const applyRules = (type) => {
 	switch (type) {
 		case "login":
+			return [
+				body("provider")
+					.trim()
+					.notEmpty()
+					.withMessage("Required field, cannot be left empty")
+					.bail()
+					.isIn(loginProviderTypes)
+					.withMessage("Unsupported authentication provider"),
+				body("accessToken")
+					.trim()
+					.notEmpty()
+					.withMessage("Required field, cannot be left empty")
+					.bail()
+					.customSanitizer((value) => {
+						return decodeURIComponent(value);
+					})
+					.custom(async (value, { req }) => {
+						const { valid, error, user } = await isValidProviderAccessToken(
+							value,
+							req.body.provider
+						);
+
+						if (!valid) throw new Error(error);
+
+						// Assign provider user to the request body
+						req.body.gitUser = user;
+						return true;
+					}),
+				body("refreshToken")
+					.if(
+						(value, { req }) =>
+							req.body.provider === "gitlab" ||
+							req.body.provider === "bitbucket"
+					)
+					.trim()
+					.notEmpty()
+					.withMessage("Required field, cannot be left empty")
+					.customSanitizer((value) => {
+						return decodeURIComponent(value);
+					}),
+				body("expiresAt")
+					.if(
+						(value, { req }) =>
+							req.body.provider === "gitlab" ||
+							req.body.provider === "bitbucket"
+					)
+					.trim()
+					.notEmpty()
+					.withMessage("Required field, cannot be left empty")
+					.bail()
+					.isInt({ min: 0 }) // Check if it's a positive integer
+					.customSanitizer((value) => {
+						const date = new Date(value * 1000);
+						return isNaN(date.getTime()) ? null : date;
+					})
+					.withMessage("Invalid epoch timestamp"),
+			];
 		case "start-setup":
 			return [
 				body("provider")

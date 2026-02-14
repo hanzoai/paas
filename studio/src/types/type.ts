@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Organization, OrgRoles, Project } from ".";
 
 export type LoginParams = UserDataToRegister;
+export type AuthProvider = "hanzo" | "github" | "gitlab" | "bitbucket";
 
 export interface APIError {
   error: string;
@@ -48,7 +49,7 @@ export type User = {
   _id: string;
   createdAt: string;
   updatedAt: string;
-  provider: "github" | "gitlab" | "bitbucket";
+  provider: AuthProvider;
   providerUserId: string;
   lastLoginAt: string;
   at: string;
@@ -56,7 +57,7 @@ export type User = {
 };
 
 export interface UserDataToRegister {
-  provider: "github" | "gitlab" | "bitbucket";
+  provider: AuthProvider;
   accessToken: string;
   refreshToken?: string;
   expiresAt?: string;

@@ -25,6 +25,10 @@ platform:
   extraEnv:
     - name: OAUTH_URL
       value: "https://hanzo.id/api/oauth"
+    - name: IAM_ENDPOINT
+      value: "https://hanzo.id"
+    - name: IAM_USERINFO_URL
+      value: "https://hanzo.id/api/userinfo"
     - name: GROUP_NAME
       value: "hanzo.ai"
     - name: SOLVER_NAME
@@ -42,6 +46,12 @@ studio:
   image: "hanzoai/platform-studio"
   tag: "latest"
   extraEnv:
+    - name: VITE_IAM_ORIGIN
+      value: "https://hanzo.id"
+    - name: VITE_IAM_CLIENT_ID
+      value: "hanzo-app-client-id"
+    - name: VITE_IAM_SCOPE
+      value: "openid profile email"
     - name: VITE_DOCS_URL
       value: "https://docs.hanzo.ai/platform"
     - name: VITE_CHANGELOG_URL

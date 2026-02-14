@@ -21,12 +21,12 @@
 		--font-size-sm: 0.875rem;
 		--font-size-sm-line-height: 1.5rem;
 
-		--brand-color-primary: 15 135 255;
-		--brand-color-primary--darker: 11 97 182;
+		--brand-color-primary: 253 68 68;
+		--brand-color-primary--darker: 200 40 40;
 
-		--elements-strong--blue: 49 72 169;
-		--elements-blue: 15 135 255;
-		--elements-subtle-blue: 195 206 254;
+		--elements-strong--blue: 200 40 40;
+		--elements-blue: 253 68 68;
+		--elements-subtle-blue: 254 195 195;
 
 		--elements-strong-green: 11 125 70;
 		--elements-green: 57 198 130;
@@ -85,8 +85,8 @@
 		--form-input-disabled-background: 249 249 251;
 		--form-input-disabled-border: 237 238 243;
 
-		--button-background-base-primary: 15 135 255;
-		--button-background-hover-primary: 15 171 255;
+		--button-background-base-primary: 253 68 68;
+		--button-background-hover-primary: 255 100 100;
 		--button-background-base-secondary: 244 245 248;
 		--button-background-hover-secondary: 237 238 243;
 		--button-background-disabled: 249 249 251;
@@ -133,60 +133,60 @@
 	}
 
 	.dark {
-		--theme-base-background: 14 21 37;
-		--theme-subtle-background: 28 35 51;
+		--theme-base-background: 0 0 0;
+		--theme-subtle-background: 15 15 15;
 
-		--theme-lighter-background: 43 50 69;
+		--theme-lighter-background: 30 30 30;
 		--theme-base-reverse-background: 255 255 255;
-		--theme-border: 43 50 69;
-		--theme-border-hover: 78 85 105;
+		--theme-border: 38 38 38;
+		--theme-border-hover: 64 64 64;
 
-		--text-base: 245 249 252;
-		--text-subtle: 157 162 166;
-		--text-disabled: 99 111 146;
+		--text-base: 250 250 250;
+		--text-subtle: 160 160 160;
+		--text-disabled: 100 100 100;
 
 		--icon-secondary: 255 255 255;
-		--icon-base: 146 154 181;
-		--icon-disabled: 99 113 142;
+		--icon-base: 160 160 160;
+		--icon-disabled: 100 100 100;
 
 		--theme-base-reverse-background: 255 255 255;
-		--theme-subtle-reverse-background: 249 249 251;
-		--theme-lighter-reverse-background: 237 238 243;
-		--theme-border-reverse: 237 238 243;
+		--theme-subtle-reverse-background: 250 250 250;
+		--theme-lighter-reverse-background: 240 240 240;
+		--theme-border-reverse: 230 230 230;
 
-		--text-base-reverse: 25 28 41;
-		--text-subtle-reverse: 146 154 181;
-		--text-disabled-reverse: 219 221 230;
+		--text-base-reverse: 20 20 20;
+		--text-subtle-reverse: 120 120 120;
+		--text-disabled-reverse: 200 200 200;
 
-		--icon-secondary-reverse: 33 37 48;
-		--icon-base-reverse: 146 154 181;
-		--icon-disabled-reverse: 219 221 230;
+		--icon-secondary-reverse: 20 20 20;
+		--icon-base-reverse: 120 120 120;
+		--icon-disabled-reverse: 200 200 200;
 
 		--surface-green: 6 62 35;
 		--surface-yellow: 78 62 4;
 		--surface-red: 79 23 36;
 
-		--button-background-base-secondary: 28 35 51;
-		--button-background-hover-secondary: 43 50 69;
-		--button-background-border-secondary: 70 71 78;
-		--button-background-border-hover-secondary: 99 111 146;
-		--button-background-disabled: 33 37 48;
+		--button-background-base-secondary: 15 15 15;
+		--button-background-hover-secondary: 30 30 30;
+		--button-background-border-secondary: 50 50 50;
+		--button-background-border-hover-secondary: 80 80 80;
+		--button-background-disabled: 20 20 20;
 
-		--button-border-hover: 66 74 97;
-		--button-border-disabled: 33 37 48;
-		--button-border-base: 70 71 78;
+		--button-border-hover: 64 64 64;
+		--button-border-disabled: 20 20 20;
+		--button-border-base: 50 50 50;
 
-		--wrapper-background-base: 33 37 48;
-		--wrapper-background-hover: 60 68 92;
-		--wrapper-menu-border: 50 56 73;
-		--wrapper-background-light: 42 47 60;
+		--wrapper-background-base: 20 20 20;
+		--wrapper-background-hover: 40 40 40;
+		--wrapper-menu-border: 38 38 38;
+		--wrapper-background-light: 25 25 25;
 
-		--form-input-base-background: 43 50 69;
-		--form-input-base-border: 70 71 78;
-		--form-input-hover: 99 111 146;
-		--form-input-focus: 134 157 254;
-		--form-input-disabled-background: 33 37 48;
-		--form-input-disabled-border: 50 56 73;
+		--form-input-base-background: 15 15 15;
+		--form-input-base-border: 50 50 50;
+		--form-input-hover: 80 80 80;
+		--form-input-focus: 253 68 68;
+		--form-input-disabled-background: 20 20 20;
+		--form-input-disabled-border: 38 38 38;
 
 		--database: 108 217 126;
 		--cache: 87 171 255;

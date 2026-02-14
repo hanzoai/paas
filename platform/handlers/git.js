@@ -1,5 +1,91 @@
 import axios from "axios";
 
+const IAM_PROVIDER = "hanzo";
+
+function toIamUserInfoUrl(baseUrl) {
+	if (!baseUrl) return null;
+	return `${baseUrl.replace(/\/$/, "")}/api/userinfo`;
+}
+
+function getIamUserInfoUrls() {
+	return [
+		process.env.IAM_USERINFO_URL,
+		toIamUserInfoUrl(process.env.IAM_ENDPOINT),
+		toIamUserInfoUrl(process.env.IAM_URL),
+		"https://hanzo.id/api/userinfo",
+		"https://iam.hanzo.ai/api/userinfo",
+	].filter((url, index, self) => Boolean(url) && self.indexOf(url) === index);
+}
+
+function mapIamUserProfile(profile) {
+	if (!profile) {
+		return null;
+	}
+
+	const providerUserId = profile.sub || profile.id || profile.userId;
+	if (!providerUserId) {
+		return null;
+	}
+
+	return {
+		providerUserId: providerUserId.toString(),
+		username:
+			profile.preferred_username ||
+			profile.username ||
+			profile.name ||
+			profile.display_name ||
+			profile.email ||
+			providerUserId.toString(),
+		email: profile.email || null,
+		avatar: profile.picture || profile.avatar || null,
+		provider: IAM_PROVIDER,
+	};
+}
+
+async function isValidIamAccessToken(accessToken) {
+	const iamUserInfoUrls = getIamUserInfoUrls();
+	let lastError = null;
+
+	for (let i = 0; i < iamUserInfoUrls.length; i++) {
+		const endpoint = iamUserInfoUrls[i];
+		try {
+			const result = await axios.get(endpoint, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+				timeout: 10000,
+			});
+			const user = mapIamUserProfile(result.data);
+			if (!user) {
+				return {
+					valid: false,
+					error: "Unable to resolve IAM user profile from token.",
+				};
+			}
+
+			return {
+				valid: true,
+				user,
+			};
+		} catch (error) {
+			if (
+				error.response &&
+				(error.response.status === 401 || error.response.status === 403)
+			) {
+				return { valid: false, error: "Invalid or expired token." };
+			}
+			lastError = error;
+		}
+	}
+
+	return {
+		valid: false,
+		error: JSON.stringify(
+			lastError?.response?.data ??
+				lastError?.message ??
+				"Unable to validate token against IAM.",
+		),
+	};
+}
+
 /**
  * Checks if the provided access token is valid for the given Git provider.
  *
@@ -97,6 +183,21 @@ export async function isValidGitProviderAccessToken(accessToken, gitProvider) {
 	}
 
 	return { valid: false, error: "Unsupported Git repository provider." };
+}
+
+/**
+ * Checks if the provided access token is valid for the given authentication provider.
+ *
+ * @param {string} accessToken - The access token to be validated.
+ * @param {string} provider - The authentication provider (e.g. "hanzo", "github").
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the validation result.
+ */
+export async function isValidProviderAccessToken(accessToken, provider) {
+	if (provider === IAM_PROVIDER) {
+		return isValidIamAccessToken(accessToken);
+	}
+
+	return isValidGitProviderAccessToken(accessToken, provider);
 }
 
 /**

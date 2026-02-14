@@ -47,8 +47,8 @@ export default function AccountSetup() {
 	});
 
 	return (
-		<div className='h-screen m-auto dark:bg-base flex flex-col items-center justify-center'>
-			<Hanzo className='size-24' />
+		<div className='h-screen m-auto bg-black flex flex-col items-center justify-center'>
+			<Hanzo className='size-16 text-white mb-4' />
 			<div className='space-y-8 max-w-lg'>
 				<div className='space-y-2 text-center'>
 					<h1 className='text-2xl font-bold'>{t('onboarding.org.title')}</h1>
