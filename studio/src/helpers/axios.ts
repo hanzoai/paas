@@ -10,7 +10,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 export const instance = axios.create({
-  baseURL: `${baseURL}/api`,
+  baseURL: baseURL,
   headers,
 });
 
