@@ -54,7 +54,7 @@ instance.interceptors.response.use(
       details: err.fields?.[0]?.msg ?? err.details,
     };
     if (ERROR_CODES_TO_REDIRECT_LOGIN_PAGE.includes(apiError.code)) {
-      window.location.href = "/studio/login";
+      window.location.href = "/login";
       resetAllStores();
     }
 
