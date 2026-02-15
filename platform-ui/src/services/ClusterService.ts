@@ -88,4 +88,69 @@ export default class ClusterService {
   static async healthCheck() {
     return (await axios.get(`/health`)).data;
   }
+
+  // --- DOKS Provisioner API ---
+
+  static doksUrl = "/v1/cluster/doks";
+
+  static async getDOKSOptions() {
+    return (await axios.get(`${this.doksUrl}/options`)).data;
+  }
+
+  static async getDOKSPricing(sizeSlug: string) {
+    return (await axios.get(`${this.doksUrl}/pricing/${sizeSlug}`)).data;
+  }
+
+  static async provisionDOKS(params: {
+    orgId: string;
+    region?: string;
+    nodeSize?: string;
+    nodeCount?: number;
+    ha?: boolean;
+  }) {
+    return (await axios.post(`${this.doksUrl}/provision`, params)).data;
+  }
+
+  static async getDOKSStatus(orgId: string) {
+    return (await axios.get(`${this.doksUrl}/${orgId}/status`)).data;
+  }
+
+  static async getDOKSKubeconfig(orgId: string): Promise<string> {
+    return (await axios.get(`${this.doksUrl}/${orgId}/kubeconfig`)).data;
+  }
+
+  static async addDOKSNodePool(
+    orgId: string,
+    params: { name: string; size: string; count: number }
+  ) {
+    return (await axios.post(`${this.doksUrl}/${orgId}/node-pools`, params))
+      .data;
+  }
+
+  static async scaleDOKSNodePool(
+    orgId: string,
+    poolId: string,
+    params: { count?: number; size?: string }
+  ) {
+    return (
+      await axios.put(
+        `${this.doksUrl}/${orgId}/node-pools/${poolId}`,
+        params
+      )
+    ).data;
+  }
+
+  static async deleteDOKSNodePool(orgId: string, poolId: string) {
+    return (
+      await axios.delete(`${this.doksUrl}/${orgId}/node-pools/${poolId}`)
+    ).data;
+  }
+
+  static async upgradeDOKSHA(orgId: string) {
+    return (await axios.post(`${this.doksUrl}/${orgId}/upgrade-ha`)).data;
+  }
+
+  static async deleteDOKSCluster(orgId: string) {
+    return (await axios.delete(`${this.doksUrl}/${orgId}?confirm=true`)).data;
+  }
 }

@@ -61,6 +61,14 @@ const OrganizationProjects = loadable(
 	},
 );
 
+const OrganizationCluster = loadable(
+	() => componentLoader(() => import('../pages/organization/OrganizationCluster')),
+	{
+		fallback: <Fallback />,
+		resolveComponent: (mod: any) => mod.default,
+	},
+);
+
 const Environment = loadable(
 	() => componentLoader(() => import('../pages/environment/Environment')),
 	{
@@ -194,6 +202,10 @@ const router = createBrowserRouter(
 											],
 										},
 									],
+								},
+								{
+									path: 'cluster',
+									element: <OrganizationCluster />,
 								},
 							],
 						},
