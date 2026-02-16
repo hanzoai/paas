@@ -157,4 +157,16 @@ export default class ClusterService {
   static async deleteDOKSCluster(orgId: string) {
     return (await axios.delete(`${this.doksUrl}/${orgId}?confirm=true`)).data;
   }
+
+  // --- Billing API ---
+
+  static billingUrl = "/v1/billing";
+
+  static async getFleetBilling() {
+    return (await axios.get(`${this.billingUrl}/fleet`)).data;
+  }
+
+  static async getOrgBilling(orgId: string) {
+    return (await axios.get(`${this.billingUrl}/${orgId}`)).data;
+  }
 }

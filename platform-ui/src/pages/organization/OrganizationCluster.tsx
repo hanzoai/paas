@@ -3,6 +3,7 @@ import { Loading } from '@/components/Loading';
 import ClusterService from '@/services/ClusterService';
 import useOrganizationStore from '@/store/organization/organizationStore';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 type ClusterStatus = {
 	status: { state: string; message?: string };
@@ -30,6 +31,13 @@ export default function OrganizationCluster() {
 
 	const orgDoks = (organization as any)?.doks;
 	const hasCluster = orgDoks?.clusterId && orgDoks?.status !== 'error';
+
+	const { data: billing } = useQuery({
+		queryKey: ['org-billing', organization?._id],
+		queryFn: () => ClusterService.getOrgBilling(organization!._id),
+		enabled: !!organization?._id && !!hasCluster,
+		refetchOnWindowFocus: false,
+	});
 
 	useEffect(() => {
 		if (!organization?._id) return;
@@ -303,6 +311,43 @@ export default function OrganizationCluster() {
 					</div>
 				))}
 			</div>
+
+			{/* Cost Breakdown */}
+			{billing && (
+				<div className='rounded-lg border border-border bg-base-800 p-6 space-y-4'>
+					<h3 className='font-semibold text-default'>Monthly Cost</h3>
+					<div className='space-y-2'>
+						{(billing as any).items?.map((item: any, i: number) => (
+							<div
+								key={i}
+								className='flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0'
+							>
+								<div>
+									{item.type === 'nodes' ? (
+										<span className='text-default'>
+											{item.count}x {item.size}
+											<span className='text-subtle ml-2'>({item.pool})</span>
+										</span>
+									) : item.type === 'ha_control_plane' ? (
+										<span className='text-default'>HA Control Plane</span>
+									) : (
+										<span className='text-default'>{item.type}</span>
+									)}
+								</div>
+								<span className='font-mono text-default'>
+									${item.monthlyTotal.toFixed(2)}/mo
+								</span>
+							</div>
+						))}
+					</div>
+					<div className='flex items-center justify-between pt-2 border-t border-border'>
+						<span className='font-semibold text-default'>Total</span>
+						<span className='font-mono font-semibold text-lg text-default'>
+							${(billing as any).monthlyTotal?.toFixed(2)}/mo
+						</span>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

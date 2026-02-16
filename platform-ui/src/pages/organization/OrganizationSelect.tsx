@@ -24,6 +24,24 @@ type FleetCluster = {
 	ha: boolean;
 	endpoint: string;
 	nodePools: Array<{ name: string; size: string; count: number }>;
+	monthlyTotal?: number;
+};
+
+type OrgBilling = {
+	orgId: string;
+	monthlyTotal: number;
+	items: Array<{ type: string; monthlyTotal: number; count?: number; size?: string }>;
+};
+
+type FleetBilling = {
+	organizations: OrgBilling[];
+	summary: {
+		totalOrgs: number;
+		totalMonthly: number;
+		totalNodes: number;
+		totalVcpus: number;
+		totalMemoryGb: number;
+	};
 };
 
 export default function OrganizationSelect() {
@@ -53,6 +71,13 @@ export default function OrganizationSelect() {
 		refetchOnWindowFocus: false,
 	});
 
+	const { data: billing } = useQuery({
+		queryKey: ['fleet-billing'],
+		queryFn: () => ClusterService.getFleetBilling(),
+		refetchOnWindowFocus: false,
+		enabled: !!(fleet as FleetCluster[] | undefined)?.length,
+	});
+
 	const fleetByOrg = (fleet as FleetCluster[] | undefined)?.reduce(
 		(acc: Record<string, FleetCluster>, c: FleetCluster) => {
 			acc[c.orgId] = c;
@@ -67,6 +92,15 @@ export default function OrganizationSelect() {
 	) || 0;
 
 	const runningClusters = (fleet as FleetCluster[] | undefined)?.filter((c: FleetCluster) => c.status === 'running').length || 0;
+
+	const fleetBilling = billing as FleetBilling | undefined;
+	const billingByOrg = fleetBilling?.organizations?.reduce(
+		(acc: Record<string, OrgBilling>, b: OrgBilling) => {
+			acc[b.orgId] = b;
+			return acc;
+		},
+		{},
+	) || {};
 
 	return (
 		<div className='p-6 relative'>
@@ -83,7 +117,7 @@ export default function OrganizationSelect() {
 						{fleet && (fleet as FleetCluster[]).length > 0 && (
 							<div className='mb-8 w-full max-w-3xl mx-auto'>
 								<h2 className='text-lg font-semibold text-default mb-3'>Fleet Overview</h2>
-								<div className='grid grid-cols-3 gap-4 mb-4'>
+								<div className='grid grid-cols-4 gap-4 mb-4'>
 									<div className='rounded-lg border border-border bg-base-800 p-4 text-center'>
 										<p className='text-2xl font-bold text-default'>{(fleet as FleetCluster[]).length}</p>
 										<p className='text-xs text-subtle'>Clusters</p>
@@ -96,6 +130,15 @@ export default function OrganizationSelect() {
 										<p className='text-2xl font-bold text-default'>{totalNodes}</p>
 										<p className='text-xs text-subtle'>Total Nodes</p>
 									</div>
+									<div className='rounded-lg border border-border bg-base-800 p-4 text-center'>
+										<p className='text-2xl font-bold text-default'>
+											{(() => {
+												const fleetTotal = (fleet as FleetCluster[])?.reduce((s, c) => s + (c.monthlyTotal || 0), 0);
+												return fleetTotal ? `$${fleetTotal.toFixed(0)}` : fleetBilling?.summary?.totalMonthly ? `$${fleetBilling.summary.totalMonthly.toFixed(0)}` : '...';
+											})()}
+										</p>
+										<p className='text-xs text-subtle'>Monthly Cost</p>
+									</div>
 								</div>
 								<div className='rounded-lg border border-border bg-base-800 overflow-hidden'>
 									<table className='w-full text-sm'>
@@ -107,6 +150,7 @@ export default function OrganizationSelect() {
 												<th className='text-left px-4 py-2 text-xs text-subtle font-medium'>Status</th>
 												<th className='text-left px-4 py-2 text-xs text-subtle font-medium'>HA</th>
 												<th className='text-right px-4 py-2 text-xs text-subtle font-medium'>Nodes</th>
+												<th className='text-right px-4 py-2 text-xs text-subtle font-medium'>Monthly</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -141,6 +185,13 @@ export default function OrganizationSelect() {
 													<td className='px-4 py-2 text-subtle'>{c.ha ? 'Yes' : 'No'}</td>
 													<td className='px-4 py-2 text-right text-default'>
 														{c.nodePools.reduce((s, p) => s + p.count, 0)}
+													</td>
+													<td className='px-4 py-2 text-right text-default font-mono text-xs'>
+														{c.monthlyTotal != null
+															? `$${c.monthlyTotal.toFixed(0)}/mo`
+															: billingByOrg[c.orgId]
+																? `$${billingByOrg[c.orgId].monthlyTotal.toFixed(0)}/mo`
+																: '...'}
 													</td>
 												</tr>
 											))}

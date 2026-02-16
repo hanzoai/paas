@@ -18,6 +18,7 @@ import {
 	getDropletPricing,
 } from "../handlers/provisioner.js";
 import ERROR_CODES from "../config/errorCodes.js";
+import { recordUsageEvent, calculateOrgCost } from "../handlers/billing.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -31,17 +32,21 @@ router.get("/fleet", authSession, async (req, res) => {
 	try {
 		// Get all orgs that have a DOKS cluster
 		const orgs = await orgCtrl.getManyByQuery({ "doks.clusterId": { $exists: true, $ne: null } });
-		const fleet = orgs.map((org) => ({
-			orgId: org._id,
-			orgName: org.name,
-			clusterId: org.doks.clusterId,
-			clusterName: org.doks.clusterName,
-			region: org.doks.region,
-			status: org.doks.status,
-			ha: org.doks.ha || false,
-			endpoint: org.doks.endpoint,
-			nodePools: org.doks.nodePools || [],
-			createdAt: org.doks.createdAt,
+		const fleet = await Promise.all(orgs.map(async (org) => {
+			const cost = await calculateOrgCost(org);
+			return {
+				orgId: org._id,
+				orgName: org.name,
+				clusterId: org.doks.clusterId,
+				clusterName: org.doks.clusterName,
+				region: org.doks.region,
+				status: org.doks.status,
+				ha: org.doks.ha || false,
+				endpoint: org.doks.endpoint,
+				nodePools: org.doks.nodePools || [],
+				createdAt: org.doks.createdAt,
+				monthlyTotal: cost.monthlyTotal,
+			};
 		}));
 		res.json(fleet);
 	} catch (error) {
@@ -163,6 +168,16 @@ router.post(
 					count: p.count,
 					autoScale: p.auto_scale,
 				})),
+			});
+
+			// Track usage event
+			recordUsageEvent(orgId, {
+				action: "cluster_provision",
+				region: cluster.region_slug,
+				nodeSize: nodeSize || "s-2vcpu-4gb",
+				nodeCount: nodeCount || 2,
+				ha: ha || false,
+				clusterId: cluster.id,
 			});
 
 			res.status(201).json(updated);
@@ -292,6 +307,13 @@ router.post(
 			];
 			await orgCtrl.updateOneById(req.params.orgId, { "doks.nodePools": pools });
 
+			recordUsageEvent(req.params.orgId, {
+				action: "node_pool_add",
+				pool: pool.name,
+				size: pool.size,
+				count: pool.count,
+			});
+
 			res.status(201).json(pool);
 		} catch (error) {
 			helper.handleError(req, res, error);
@@ -403,6 +425,11 @@ router.post("/:orgId/upgrade-ha", authSession, async (req, res) => {
 		const cluster = await upgradeToHA(org.doks.clusterId);
 		await orgCtrl.updateOneById(req.params.orgId, { "doks.ha": true });
 
+		recordUsageEvent(req.params.orgId, {
+			action: "ha_upgrade",
+			monthlyCost: 40,
+		});
+
 		res.json({ ha: true, cluster });
 	} catch (error) {
 		helper.handleError(req, res, error);
@@ -437,6 +464,11 @@ router.delete("/:orgId", authSession, async (req, res) => {
 
 		await orgCtrl.updateOneById(req.params.orgId, { "doks.status": "deleting" });
 		await deleteDOKSCluster(org.doks.clusterId);
+
+		recordUsageEvent(req.params.orgId, {
+			action: "cluster_delete",
+			clusterId: org.doks.clusterId,
+		});
 
 		await orgCtrl.updateOneById(req.params.orgId, {
 			doks: null,
