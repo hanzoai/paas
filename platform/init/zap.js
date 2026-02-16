@@ -1,20 +1,28 @@
-import { ZapServer } from "@zap-proto/zap/server";
-import clsCtrl from "../controllers/cluster.js";
-import cntrCtrl from "../controllers/container.js";
-import orgCtrl from "../controllers/organization.js";
-import prjCtrl from "../controllers/project.js";
-import envCtrl from "../controllers/environment.js";
-import regCtrl from "../controllers/registry.js";
-import userCtrl from "../controllers/user.js";
-import { templates } from "../handlers/templates/index.js";
-
 var server = null;
 
 /**
  * Initializes ZAP server alongside Express.
  * Exposes PaaS controller operations as MCP-compatible tools via ZAP protocol.
+ * Gracefully skips if @zap-proto/zap is not installed.
  */
 export async function initializeZapServer() {
+	let ZapServer;
+	try {
+		({ ZapServer } = await import("@zap-proto/zap/server"));
+	} catch {
+		console.info("ZAP server disabled (@zap-proto/zap not installed)");
+		return;
+	}
+
+	const clsCtrl = (await import("../controllers/cluster.js")).default;
+	const cntrCtrl = (await import("../controllers/container.js")).default;
+	const orgCtrl = (await import("../controllers/organization.js")).default;
+	const prjCtrl = (await import("../controllers/project.js")).default;
+	const envCtrl = (await import("../controllers/environment.js")).default;
+	const regCtrl = (await import("../controllers/registry.js")).default;
+	const userCtrl = (await import("../controllers/user.js")).default;
+	const { templates } = await import("../handlers/templates/index.js");
+
 	const port = parseInt(process.env.ZAP_PORT || "9998", 10);
 
 	server = new ZapServer({
