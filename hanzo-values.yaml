@@ -85,3 +85,18 @@ minio:
     requests:
       cpu: 100m
       memory: 256Mi
+
+# Hanzo Zero Trust — mesh networking for all PaaS services
+zt:
+  enabled: true
+  # Controller endpoint (cluster-internal)
+  controllerEndpoint: "hanzo-zt-controller.hanzo-zt.svc.cluster.local:443"
+  sidecar:
+    image: "hanzozt/zt-host:latest"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi

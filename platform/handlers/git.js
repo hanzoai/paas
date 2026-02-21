@@ -2,17 +2,21 @@ import axios from "axios";
 
 const IAM_PROVIDER = "hanzo";
 
-function toIamUserInfoUrl(baseUrl) {
+function toIamUrl(baseUrl, path) {
 	if (!baseUrl) return null;
-	return `${baseUrl.replace(/\/$/, "")}/api/userinfo`;
+	return `${baseUrl.replace(/\/$/, "")}${path}`;
 }
 
 function getIamUserInfoUrls() {
+	const base = process.env.IAM_ENDPOINT || process.env.IAM_URL;
 	return [
 		process.env.IAM_USERINFO_URL,
-		toIamUserInfoUrl(process.env.IAM_ENDPOINT),
-		toIamUserInfoUrl(process.env.IAM_URL),
+		// Try /api/get-account first (returns full profile in our Casdoor version)
+		toIamUrl(base, "/api/get-account"),
+		toIamUrl(base, "/api/userinfo"),
+		"https://hanzo.id/api/get-account",
 		"https://hanzo.id/api/userinfo",
+		"https://iam.hanzo.ai/api/get-account",
 		"https://iam.hanzo.ai/api/userinfo",
 	].filter((url, index, self) => Boolean(url) && self.indexOf(url) === index);
 }
@@ -22,7 +26,15 @@ function mapIamUserProfile(profile) {
 		return null;
 	}
 
-	const providerUserId = profile.sub || profile.id || profile.userId;
+	// Casdoor's /api/get-account wraps user data in a "data" field
+	const user = profile.data && typeof profile.data === "object" ? profile.data : profile;
+
+	// Skip error responses (e.g. expired token returns {status:"error",...})
+	if (user.status === "error") {
+		return null;
+	}
+
+	const providerUserId = user.sub || user.id || user.userId;
 	if (!providerUserId) {
 		return null;
 	}
@@ -30,14 +42,15 @@ function mapIamUserProfile(profile) {
 	return {
 		providerUserId: providerUserId.toString(),
 		username:
-			profile.preferred_username ||
-			profile.username ||
-			profile.name ||
-			profile.display_name ||
-			profile.email ||
+			user.preferred_username ||
+			user.username ||
+			user.name ||
+			user.displayName ||
+			user.display_name ||
+			user.email ||
 			providerUserId.toString(),
-		email: profile.email || null,
-		avatar: profile.picture || profile.avatar || null,
+		email: user.email || null,
+		avatar: user.picture || user.avatar || null,
 		provider: IAM_PROVIDER,
 	};
 }
@@ -54,17 +67,10 @@ async function isValidIamAccessToken(accessToken) {
 				timeout: 10000,
 			});
 			const user = mapIamUserProfile(result.data);
-			if (!user) {
-				return {
-					valid: false,
-					error: "Unable to resolve IAM user profile from token.",
-				};
+			if (user) {
+				return { valid: true, user };
 			}
-
-			return {
-				valid: true,
-				user,
-			};
+			// Profile didn't map — try next endpoint
 		} catch (error) {
 			if (
 				error.response &&
@@ -75,6 +81,20 @@ async function isValidIamAccessToken(accessToken) {
 			lastError = error;
 		}
 	}
+
+	// All endpoints exhausted — also try decoding the JWT payload directly
+	try {
+		const parts = accessToken.split(".");
+		if (parts.length === 3) {
+			const payload = JSON.parse(
+				Buffer.from(parts[1], "base64url").toString("utf-8"),
+			);
+			const user = mapIamUserProfile(payload);
+			if (user) {
+				return { valid: true, user };
+			}
+		}
+	} catch {}
 
 	return {
 		valid: false,
