@@ -528,7 +528,7 @@ export const templates = [
 					defaultValues: {
 						repoOrRegistry: "registry",
 						"registry.imageUrl": "ghcr.io/hanzoai/bot:latest",
-						"networking.containerPort": 8080,
+						"networking.containerPort": 18789,
 						"networking.tcpProxy.enabled": false,
 						"podConfig.restartPolicy": "Always",
 						"podConfig.cpuRequest": 100,

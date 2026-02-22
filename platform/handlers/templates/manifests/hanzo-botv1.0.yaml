@@ -46,6 +46,8 @@ spec:
         secrets.lux.network/managed-secret: "{{iid}}-bot-secrets"
     spec:
       restartPolicy: Always
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: bot
           image: {{registry.imageUrl}}
@@ -91,12 +93,20 @@ spec:
             limits:
               memory: {{podConfig.memoryLimit}}{{podConfig.memoryLimitType}}
               cpu: {{podConfig.cpuLimit}}{{podConfig.cpuLimitType}}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{networking.containerPort}}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /health
               port: {{networking.containerPort}}
             failureThreshold: 5
-            initialDelaySeconds: 20
+            initialDelaySeconds: 0
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
@@ -104,7 +114,7 @@ spec:
               path: /health
               port: {{networking.containerPort}}
             failureThreshold: 5
-            initialDelaySeconds: 10
+            initialDelaySeconds: 0
             periodSeconds: 10
             timeoutSeconds: 5
 
