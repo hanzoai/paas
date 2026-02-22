@@ -1,4 +1,4 @@
-# Agnost Code of Conduct
+# Hanzo Code of Conduct
 
 In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
@@ -20,7 +20,7 @@ Examples of unacceptable behavior by participants include:
 - Publishing others' private information, such as a physical or electronic address, without explicit permission.
 - Conduct which could reasonably be considered inappropriate for the forum in which it occurs.
 
-All Agnost forums and spaces are meant for professional interactions, and any behavior which could reasonably be considered inappropriate in a professional setting is unacceptable.
+All Hanzo forums and spaces are meant for professional interactions, and any behavior which could reasonably be considered inappropriate in a professional setting is unacceptable.
 
 ## Our Responsibilities
 
@@ -30,13 +30,13 @@ Project maintainers have the right and responsibility to remove, edit, or reject
 
 ## Scope
 
-This Code of Conduct applies to all content on agnost.dev, Agnost’s GitHub organization, or any other official Agnost web presence allowing for community interactions, as well as at all official Agnost events, whether offline or online.
+This Code of Conduct applies to all content on hanzo.ai, Hanzo's GitHub organization, or any other official Hanzo web presence allowing for community interactions, as well as at all official Hanzo events, whether offline or online.
 
-The Code of Conduct also applies within all project spaces and in public spaces whenever an individual is representing Agnost or its community. Examples of representing a project or community include using an official project e-mail address, posting via an official social media account, or acting as an appointed or de facto representative at an online or offline event. Representation of Agnost may be further defined and clarified by project maintainers.
+The Code of Conduct also applies within all project spaces and in public spaces whenever an individual is representing Hanzo or its community. Examples of representing a project or community include using an official project e-mail address, posting via an official social media account, or acting as an appointed or de facto representative at an online or offline event. Representation of Hanzo may be further defined and clarified by project maintainers.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at support@agnost.dev. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at support@hanzo.ai. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
 
 Project maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent repercussions as determined by other members of the project's leadership.
 

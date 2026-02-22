@@ -70,7 +70,7 @@ class ClusterController extends BaseController {
 				_id: orgId,
 				ownerUserId: user._id,
 				iid: helper.generateSlug("org"),
-				name: "Agnost GitOps",
+				name: "Hanzo PaaS",
 				color: helper.generateColor("light"),
 				createdBy: user._id,
 				isClusterEntity: true,

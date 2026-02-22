@@ -137,7 +137,7 @@ async function getContainers(pageNumber, pageSize) {
 	];
 
 	return await dbClient
-		.db("agnost")
+		.db("hanzo")
 		.collection("containers")
 		.aggregate(pipeline)
 		.toArray();

@@ -169,7 +169,7 @@ router.get("/release-info", authSession, async (req, res) => {
 		}
 
 		const latest = await axios.get(
-			"https://raw.githubusercontent.com/cloud-agnost/agnost-gitops/main/releases/latest.json",
+			"https://raw.githubusercontent.com/hanzoai/paas/main/releases/latest.json",
 			{
 				headers: {
 					Accept: "application/vnd.github.v3+json",
@@ -178,7 +178,7 @@ router.get("/release-info", authSession, async (req, res) => {
 		);
 
 		const current = await axios.get(
-			`https://raw.githubusercontent.com/cloud-agnost/agnost-gitops/main/releases/${cluster.release}.json`,
+			`https://raw.githubusercontent.com/hanzoai/paas/main/releases/${cluster.release}.json`,
 			{
 				headers: {
 					Accept: "application/vnd.github.v3+json",
@@ -240,7 +240,7 @@ router.put(
 
 			try {
 				oldReleaseInfo = await axios.get(
-					`https://raw.githubusercontent.com/cloud-agnost/agnost-gitops/main/releases/${cluster.release}.json`,
+					`https://raw.githubusercontent.com/hanzoai/paas/main/releases/${cluster.release}.json`,
 					{
 						headers: {
 							Accept: "application/vnd.github.v3+json",
@@ -258,7 +258,7 @@ router.put(
 
 			try {
 				newReleaseInfo = await axios.get(
-					`https://raw.githubusercontent.com/cloud-agnost/agnost-gitops/main/releases/${release}.json`,
+					`https://raw.githubusercontent.com/hanzoai/paas/main/releases/${release}.json`,
 					{
 						headers: {
 							Accept: "application/vnd.github.v3+json",
@@ -281,7 +281,7 @@ router.put(
 					const entry = {
 						containeriid: `${key}`,
 						tag: newReleaseInfo.data.modules[key],
-						image: `europe-docker.pkg.dev/agnost-gitops/images/${key}:${newReleaseInfo.data.modules[key]}`,
+						image: `hanzoai/paas/${key}:${newReleaseInfo.data.modules[key]}`,
 					};
 
 					requiredUpdates.push(entry);

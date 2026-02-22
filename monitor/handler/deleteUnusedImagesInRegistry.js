@@ -133,7 +133,7 @@ async function getContainer(slug) {
 	let dbClient = getDBClient();
 
 	return await dbClient
-		.db("agnost")
+		.db("hanzo")
 		.collection("containers")
 		.findOne({ slug: slug });
 }

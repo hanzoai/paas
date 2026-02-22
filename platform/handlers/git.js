@@ -1,5 +1,111 @@
 import axios from "axios";
 
+const IAM_PROVIDER = "hanzo";
+
+function toIamUrl(baseUrl, path) {
+	if (!baseUrl) return null;
+	return `${baseUrl.replace(/\/$/, "")}${path}`;
+}
+
+function getIamUserInfoUrls() {
+	const base = process.env.IAM_ENDPOINT || process.env.IAM_URL;
+	return [
+		process.env.IAM_USERINFO_URL,
+		// Try /api/get-account first (returns full profile in our Casdoor version)
+		toIamUrl(base, "/api/get-account"),
+		toIamUrl(base, "/api/userinfo"),
+		"https://hanzo.id/api/get-account",
+		"https://hanzo.id/api/userinfo",
+		"https://iam.hanzo.ai/api/get-account",
+		"https://iam.hanzo.ai/api/userinfo",
+	].filter((url, index, self) => Boolean(url) && self.indexOf(url) === index);
+}
+
+function mapIamUserProfile(profile) {
+	if (!profile) {
+		return null;
+	}
+
+	// Casdoor's /api/get-account wraps user data in a "data" field
+	const user = profile.data && typeof profile.data === "object" ? profile.data : profile;
+
+	// Skip error responses (e.g. expired token returns {status:"error",...})
+	if (user.status === "error") {
+		return null;
+	}
+
+	const providerUserId = user.sub || user.id || user.userId;
+	if (!providerUserId) {
+		return null;
+	}
+
+	return {
+		providerUserId: providerUserId.toString(),
+		username:
+			user.preferred_username ||
+			user.username ||
+			user.name ||
+			user.displayName ||
+			user.display_name ||
+			user.email ||
+			providerUserId.toString(),
+		email: user.email || null,
+		avatar: user.picture || user.avatar || null,
+		provider: IAM_PROVIDER,
+	};
+}
+
+async function isValidIamAccessToken(accessToken) {
+	const iamUserInfoUrls = getIamUserInfoUrls();
+	let lastError = null;
+
+	for (let i = 0; i < iamUserInfoUrls.length; i++) {
+		const endpoint = iamUserInfoUrls[i];
+		try {
+			const result = await axios.get(endpoint, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+				timeout: 10000,
+			});
+			const user = mapIamUserProfile(result.data);
+			if (user) {
+				return { valid: true, user };
+			}
+			// Profile didn't map — try next endpoint
+		} catch (error) {
+			if (
+				error.response &&
+				(error.response.status === 401 || error.response.status === 403)
+			) {
+				return { valid: false, error: "Invalid or expired token." };
+			}
+			lastError = error;
+		}
+	}
+
+	// All endpoints exhausted — also try decoding the JWT payload directly
+	try {
+		const parts = accessToken.split(".");
+		if (parts.length === 3) {
+			const payload = JSON.parse(
+				Buffer.from(parts[1], "base64url").toString("utf-8"),
+			);
+			const user = mapIamUserProfile(payload);
+			if (user) {
+				return { valid: true, user };
+			}
+		}
+	} catch {}
+
+	return {
+		valid: false,
+		error: JSON.stringify(
+			lastError?.response?.data ??
+				lastError?.message ??
+				"Unable to validate token against IAM.",
+		),
+	};
+}
+
 /**
  * Checks if the provided access token is valid for the given Git provider.
  *
@@ -100,6 +206,21 @@ export async function isValidGitProviderAccessToken(accessToken, gitProvider) {
 }
 
 /**
+ * Checks if the provided access token is valid for the given authentication provider.
+ *
+ * @param {string} accessToken - The access token to be validated.
+ * @param {string} provider - The authentication provider (e.g. "hanzo", "github").
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the validation result.
+ */
+export async function isValidProviderAccessToken(accessToken, provider) {
+	if (provider === IAM_PROVIDER) {
+		return isValidIamAccessToken(accessToken);
+	}
+
+	return isValidGitProviderAccessToken(accessToken, provider);
+}
+
+/**
  * Retrieves the primary email address associated with the GitHub user.
  * @param {string} accessToken - The access token for authenticating the request.
  * @returns {Promise<string|null>} The primary email address of the GitHub user, or null if not found.
@@ -174,7 +295,8 @@ export async function revokeGitProviderAccessToken(
 	refreshToken
 ) {
 	try {
-		await axios.post(`https://api.agnost.dev/oauth/${provider}/revoke`, {
+		const oauthUrl = process.env.OAUTH_URL || 'https://api.hanzo.ai/oauth';
+		await axios.post(`${oauthUrl}/${provider}/revoke`, {
 			accessToken,
 			refreshToken,
 		});

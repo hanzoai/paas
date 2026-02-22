@@ -69,28 +69,30 @@ spec:
                   name: agnost
                   key: clusterSlug
             - name: GROUP_NAME
-              value: "agnost.dev"
+              value: "hanzo.ai"
             - name: SOLVER_NAME
-              value: "agnost"
-            - name: MINIO_ENDPOINT
+              value: "hanzo"
+            - name: OAUTH_URL
+              value: ""
+            - name: STORAGE_ENDPOINT
               valueFrom:
                 secretKeyRef:
-                  name: minio
+                  name: storage
                   key: endpoint
-            - name: MINIO_PORT
+            - name: STORAGE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: minio
+                  name: storage
                   key: port
-            - name: MINIO_ACCESS_KEY
+            - name: STORAGE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio
+                  name: storage
                   key: accessKey
-            - name: MINIO_SECRET_KEY
+            - name: STORAGE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio
+                  name: storage
                   key: secretKey
             - name: WEBHOOK_NAMESPACE
               value: agnost

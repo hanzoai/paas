@@ -49,7 +49,7 @@ async function getGitProviders(tenMinutesLater, pageNumber, pageSize) {
 	let dbClient = getDBClient();
 
 	return await dbClient
-		.db("agnost")
+		.db("hanzo")
 		.collection("git_providers")
 		.find(
 			{
@@ -66,8 +66,9 @@ async function getGitProviders(tenMinutesLater, pageNumber, pageSize) {
 async function refreshAccessToken(gitProvider) {
 	try {
 		// Renew the access and refresh tokens
+		const oauthUrl = process.env.OAUTH_URL || 'https://api.hanzo.ai/oauth';
 		const response = await axios.post(
-			`https://api.agnost.dev/oauth/${gitProvider.provider}/refresh`,
+			`${oauthUrl}/${gitProvider.provider}/refresh`,
 			{ refreshToken: helper.decryptText(gitProvider.refreshToken) }
 		);
 

@@ -5,7 +5,7 @@ import helper from "../util/helper.js";
 
 /**
  * An organization is the top level entitiy used to hold all apps and its associated design elements.
- * Each organization will have team members with different roled. There are two types of roles in Agnost one at the organization level
+ * Each organization will have team members with different roled. There are two types of roles in Hanzo one at the organization level
  * and the other at the application level. The organization level roles specifiy the authorizations an org member have.
  * Org Admin: Full access to the organization, can change organization name and add members to the organization
  * App Admin: Can only manage applications associated with an organization
