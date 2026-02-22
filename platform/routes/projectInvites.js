@@ -45,7 +45,7 @@ router.post(
 					token: token,
 					role: entry.role,
 					orgRole: "Member",
-					link: `${uiBaseURL}/redirect-handle?token=${token}&type=project-invite`,
+					link: `${uiBaseURL}/studio/redirect-handle?token=${token}&type=project-invite`,
 					host: user,
 				});
 			});

@@ -49,30 +49,6 @@ export const OrganizationModel = mongoose.model(
 				type: Boolean,
 				default: false,
 			},
-			// DOKS cluster provisioned for this organization
-			doks: {
-				clusterId: { type: String },
-				clusterName: { type: String },
-				region: { type: String },
-				status: {
-					type: String,
-					enum: [null, "provisioning", "running", "degraded", "deleting", "error"],
-				},
-				ha: { type: Boolean, default: false },
-				endpoint: { type: String },
-				kubeconfig: { type: String, select: false },
-				nodePools: [
-					{
-						poolId: String,
-						name: String,
-						size: String,
-						count: Number,
-						autoScale: Boolean,
-					},
-				],
-				createdAt: { type: Date },
-				provisionError: { type: String },
-			},
 			__v: {
 				type: Number,
 				select: false,

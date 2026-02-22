@@ -3,11 +3,11 @@ import * as Minio from "minio";
 class Storage {
 	constructor() {
 		this.minioClient = new Minio.Client({
-			endPoint: process.env.STORAGE_ENDPOINT, // Kubernetes service name for MinIO
-			port: parseInt(process.env.STORAGE_PORT, 10), // MinIO service port (default: 9000)
+			endPoint: process.env.MINIO_ENDPOINT, // Kubernetes service name for MinIO
+			port: parseInt(process.env.MINIO_PORT, 10), // MinIO service port (default: 9000)
 			useSSL: false, // Whether to use SSL (default: false)
-			accessKey: process.env.STORAGE_ACCESS_KEY, // MinIO access key
-			secretKey: process.env.STORAGE_SECRET_KEY, // MinIO secret key
+			accessKey: process.env.MINIO_ACCESS_KEY, // MinIO access key
+			secretKey: process.env.MINIO_SECRET_KEY, // MinIO secret key
 		});
 	}
 

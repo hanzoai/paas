@@ -25,13 +25,11 @@ spec:
             - --tls-private-key-file=/tls/tls.key
           env:
             - name: GROUP_NAME
-              value: "hanzo.ai"
+              value: "agnost.dev"
             - name: SOLVER_NAME
-              value: "hanzo"
-            - name: DNS_API_URL
-              value: ""
+              value: "agnost"
             - name: RELEASE_NUMBER
-              value: "v1.0.0"
+              value: "v0.0.2"
           ports:
             - name: https
               containerPort: 443

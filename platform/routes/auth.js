@@ -212,7 +212,7 @@ router.post(
 /*
 @route      /v1/auth/login
 @method     POST
-@desc       Login with oauth flow of an authentication provider
+@desc       Login with oauth flow of a git provider
 @access     public
 */
 router.post(
@@ -223,22 +223,12 @@ router.post(
 	async (req, res) => {
 		try {
 			const { gitUser } = req.body;
-			const isIamLogin = gitUser.provider === "hanzo";
 
 			// Get user record
 			let user = await userCtrl.getOneByQuery({
 				provider: gitUser.provider,
 				providerUserId: gitUser.providerUserId,
 			});
-
-			// IAM logins should resolve to an existing cluster user, even when
-			// that user was originally created through a Git provider.
-			if (!user && isIamLogin && gitUser.email) {
-				user = await userCtrl.getOneByQuery({
-					email: gitUser.email,
-					status: "Active",
-				});
-			}
 
 			if (!user) {
 				return res.status(401).json({

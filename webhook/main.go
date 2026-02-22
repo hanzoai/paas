@@ -14,14 +14,6 @@ import (
 
 var GroupName = os.Getenv("GROUP_NAME")
 var SolverName = os.Getenv("SOLVER_NAME")
-var DnsApiUrl = os.Getenv("DNS_API_URL")
-
-func getDnsApiUrl() string {
-	if DnsApiUrl != "" {
-		return DnsApiUrl
-	}
-	return "https://api.agnost.dev"
-}
 
 func main() {
 	if GroupName == "" {
@@ -109,7 +101,7 @@ func (c *agnostDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error {
 		return fmt.Errorf("agnost.dev: error getting record json: %v", err)
 	}
 
-	_, err = c.makeAgnostRequest("POST", getDnsApiUrl()+"/domains/records/add", recordJSON)
+	_, err = c.makeAgnostRequest("POST", "https://api.agnost.dev/domains/records/add", recordJSON)
 	if err != nil {
 		return fmt.Errorf("agnost.dev: error adding domain record: %v", err)
 	}
@@ -141,7 +133,7 @@ func (c *agnostDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
 		return fmt.Errorf("agnost.dev: error getting record json: %v", err)
 	}
 
-	_, err = c.makeAgnostRequest("POST", getDnsApiUrl()+"/domains/records/remove", recordJSON)
+	_, err = c.makeAgnostRequest("POST", "https://api.agnost.dev/domains/records/remove", recordJSON)
 	if err != nil {
 		return fmt.Errorf("agnost.dev: error cleaning domain record: %v", err)
 	}

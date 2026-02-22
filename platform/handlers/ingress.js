@@ -433,7 +433,7 @@ export async function addClusterDomainToIngresses(containers, domain) {
 			ingress.body.spec.rules = ingress.body.spec.rules ?? [];
 
 			let paths = [];
-			if (ingressPath === "platform-ui") {
+			if (ingressPath === "studio") {
 				paths = [
 					{
 						// If he container has a custom path then use it, otherwise use the container iid and namespace concatenated
