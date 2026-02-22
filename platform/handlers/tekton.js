@@ -23,6 +23,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Determines the default test image based on the Dockerfile content or project type.
+ * Inspects the Dockerfile for a recognizable base image (golang, python, rust, node)
+ * and returns a matching test image. Falls back to node:22-alpine.
+ * @param {string} dockerfile - The Dockerfile path/name (e.g. "Dockerfile").
+ * @returns {string} The default test image to use.
+ */
+function resolveDefaultTestImage(dockerfile) {
+  if (!dockerfile) return 'node:22-alpine';
+  const lower = dockerfile.toLowerCase();
+  if (lower.includes('go') || lower.includes('golang')) return 'golang:1.23-alpine';
+  if (lower.includes('python')) return 'python:3.12-alpine';
+  if (lower.includes('rust')) return 'rust:1.83-alpine';
+  return 'node:22-alpine';
+}
+
+/**
  * Creates a Tekton pipeline for the given container, environment, and git provider.
  * @param {object} container - The container object.
  * @param {object} environment - The environment object.
@@ -47,6 +63,9 @@ export async function createTektonPipeline(container, environment, gitProvider, 
   const appName = container.iid;
   const dockerfile = repo.dockerfile;
   const containerImageName = container.slug;
+  const testImage = repo.testImage || resolveDefaultTestImage(dockerfile);
+  const testEnabled = repo.testEnabled !== false ? 'true' : 'false';
+  const testCommand = repo.testCommand || '';
   const manifest = fs.readFileSync(`${__dirname}/manifests/${gitRepoType}-pipeline.yaml`, 'utf8');
 
   const resources = k8s.loadAllYaml(manifest);
@@ -142,6 +161,11 @@ export async function createTektonPipeline(container, environment, gitProvider, 
           );
           break;
         case 'TriggerBinding':
+          // Static params populated by index:
+          // 0: kind, 1: resourcename, 2: agnostnamespace, 3: resourcenamespace,
+          // 4: containerregistry, 5: githubpat/gitlabpat/bitbucketpat, 6: gitbranch,
+          // 7: gitsubpath, 8: gitwatchpath, 9: imagename, 10: dockerfile,
+          // 11: testimage, 12: testenabled, 13: testcommand
           resource.spec.params[0].value = appKind;
           resource.spec.params[1].value = appName;
           resource.spec.params[2].value = agnostNamespace;
@@ -155,6 +179,9 @@ export async function createTektonPipeline(container, environment, gitProvider, 
             : gitSubPath.replace(/^\/+/, '');
           resource.spec.params[9].value = containerImageName;
           resource.spec.params[10].value = dockerfile.replace(/^\/+/, ''); // remove leading slash, if exists
+          resource.spec.params[11].value = testImage;
+          resource.spec.params[12].value = testEnabled;
+          resource.spec.params[13].value = testCommand;
           await k8sCustomObjectApi.createNamespacedCustomObject(
             group,
             version,
@@ -715,6 +742,9 @@ export async function triggerTektonPipeline(container, environment, gitProvider)
   const appName = container.iid;
   const dockerfile = repo.dockerfile;
   const containerImageName = container.slug;
+  const testImage = repo.testImage || resolveDefaultTestImage(dockerfile);
+  const testEnabled = repo.testEnabled !== false ? 'true' : 'false';
+  const testCommand = repo.testCommand || '';
   const manifest = fs.readFileSync(`${__dirname}/manifests/${gitRepoType}-pipeline.yaml`, 'utf8');
 
   const resources = k8s.loadAllYaml(manifest);
@@ -746,6 +776,7 @@ export async function triggerTektonPipeline(container, environment, gitProvider)
     const generatedCommitId = crypto.createHash('sha1').update(uniqueInput).digest('hex');
 
     // Need to populate params that comes with Webhook call
+    // Static params (indices 0-13):
     taskrunParams[0].value = appKind;
     taskrunParams[1].value = appName;
     taskrunParams[2].value = agnostNamespace;
@@ -757,20 +788,29 @@ export async function triggerTektonPipeline(container, environment, gitProvider)
     taskrunParams[8].value = gitWatchPath ? gitWatchPath : gitSubPath.replace(/^\/+/, '');
     taskrunParams[9].value = containerImageName;
     taskrunParams[10].value = dockerfile.replace(/^\/+/, ''); // remove leading slash, if exists
-    taskrunParams[11].value = generatedCommitId;
-    taskrunParams[12].value = gitRepoUrl;
-    taskrunParams[13].value = 'hanzo-paas';
-    taskrunParams[14].value = gitRepoUrl + '/commit/' + generatedCommitId;
+    taskrunParams[11].value = testImage;
+    taskrunParams[12].value = testEnabled;
+    taskrunParams[13].value = testCommand;
+    // Webhook-populated params (indices 14+):
+    taskrunParams[14].value = generatedCommitId;
     taskrunParams[15].value = gitRepoUrl;
-    taskrunParams[16].value = path.split('/')[2];
-    taskrunParams[17].value = 'Manual TaskRun trigger';
-    taskrunParams[18].value = new Date().toISOString();
+    taskrunParams[16].value = 'hanzo-paas';
+    taskrunParams[17].value = gitRepoUrl + '/commit/' + generatedCommitId;
+    taskrunParams[18].value = gitRepoUrl;
+    taskrunParams[19].value = path.split('/')[2];
+    taskrunParams[20].value = 'Manual TaskRun trigger';
+    taskrunParams[21].value = new Date().toISOString();
+    // GitLab pipelines have an extra gitlabprojectid param at the end
+    if (gitRepoType === 'gitlab' && taskrunParams.length > 22) {
+      taskrunParams[22].value = repo.repoId || '';
+    }
     populatedSpec.params = taskrunParams;
 
-    // Get the environment variables from the start up container
-    const envVars = populatedSpec.taskSpec.steps[0].env || [];
+    // Get the environment variables from the setup step (now index 1, after report-pending at index 0)
+    const setupStepIndex = populatedSpec.taskSpec.steps.findIndex(step => step.name === 'setup');
+    const envVars = populatedSpec.taskSpec.steps[setupStepIndex].env || [];
     // Update the environment variables with the new values
-    populatedSpec.taskSpec.steps[0].env = envVars.map(envVar => {
+    populatedSpec.taskSpec.steps[setupStepIndex].env = envVars.map(envVar => {
       switch (envVar.name) {
         case 'GIT_REPO':
           envVar.value = container.repo.name;
@@ -791,16 +831,16 @@ export async function triggerTektonPipeline(container, environment, gitProvider)
           envVar.value = 'N/A';
           break;
         case 'GIT_REPO_URL':
-          envVar.value = taskrunParams[11].value;
+          envVar.value = taskrunParams[14].value;
           break;
         case 'GIT_REPO_NAME':
           envVar.value = container.repo.name;
           break;
         case 'GIT_COMMIT_MESSAGE':
-          envVar.value = taskrunParams[16].value;
+          envVar.value = taskrunParams[19].value;
           break;
         case 'GIT_COMMIT_TIMESTAMP':
-          envVar.value = taskrunParams[17].value;
+          envVar.value = taskrunParams[20].value;
           break;
         default:
           return envVar;

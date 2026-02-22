@@ -146,6 +146,19 @@ export const ContainerModel = mongoose.model(
 				repoId: {
 					type: String,
 				},
+				// Docker image to use for running tests in the pipeline
+				testImage: {
+					type: String,
+				},
+				// Whether to run tests before building
+				testEnabled: {
+					type: Boolean,
+					default: true,
+				},
+				// Custom test command override (auto-detects if empty)
+				testCommand: {
+					type: String,
+				},
 			},
 			registry: {
 				registryId: {
@@ -687,6 +700,9 @@ const fields = [
 	"repo.dockerfile",
 	"repo.gitProviderId",
 	"repo.webHookId",
+	"repo.testImage",
+	"repo.testEnabled",
+	"repo.testCommand",
 	"registry.registryId",
 	"registry.imageName",
 	"registry.imageTag",

@@ -27,6 +27,12 @@ spec:
       value: willbereplaced
     - name: dockerfile
       value: willbereplaced
+    - name: testimage
+      value: willbereplaced
+    - name: testenabled
+      value: willbereplaced
+    - name: testcommand
+      value: willbereplaced
     - name: gitrevision
       value: $(body.after)
     - name: gitrepo
@@ -43,6 +49,8 @@ spec:
       value: $(body.commits[0].message)
     - name: gitcommittimestamp
       value: $(body.commits[0].timestamp)
+    - name: gitlabprojectid
+      value: $(body.project.id)
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
@@ -64,12 +72,20 @@ spec:
     - name: gitrepo
     - name: imagename
     - name: dockerfile
+    - name: testimage
+      default: 'node:22-alpine'
+    - name: testenabled
+      default: 'true'
+    - name: testcommand
+      default: ''
     - name: gitcommitter
     - name: gitcommiturl
     - name: gitrepourl
     - name: gitreponame
     - name: gitcommitmessage
     - name: gitcommittimestamp
+    - name: gitlabprojectid
+      default: ''
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: TaskRun
@@ -84,6 +100,31 @@ spec:
           workspaces:
             - name: ws
           steps:
+            - name: report-pending
+              image: bitnamilegacy/git:2.44.0
+              env:
+                - name: GITLAB_PAT
+                  value: $(tt.params.gitlabpat)
+                - name: GIT_REPO_URL
+                  value: $(tt.params.gitrepourl)
+                - name: GIT_REVISION
+                  value: $(tt.params.gitrevision)
+                - name: GITLAB_PROJECT_ID
+                  value: $(tt.params.gitlabprojectid)
+              script: |
+                #!/bin/bash
+                if [ -z "${GITLAB_PROJECT_ID}" ] || [ -z "${GIT_REVISION}" ] || [ -z "${GITLAB_PAT}" ]; then
+                  echo "Missing required params for status reporting, skipping..."
+                  exit 0
+                fi
+                # URL-encode the project ID (it may be a path like owner/repo)
+                ENCODED_PROJECT_ID=$(echo "${GITLAB_PROJECT_ID}" | sed 's|/|%2F|g')
+                curl -s -X POST \
+                  -H "PRIVATE-TOKEN: ${GITLAB_PAT}" \
+                  -H "Content-Type: application/json" \
+                  "https://gitlab.com/api/v4/projects/${ENCODED_PROJECT_ID}/statuses/${GIT_REVISION}" \
+                  -d "{\"state\":\"pending\",\"context\":\"hanzo-paas/ci\",\"name\":\"hanzo-paas/ci\",\"description\":\"Pipeline started\",\"target_url\":\"https://platform.hanzo.ai\"}"
+                echo "Posted pending commit status for ${GIT_REVISION}"
             - name: setup
               image: bitnamilegacy/git:2.44.0
               onError: continue
@@ -161,6 +202,67 @@ spec:
                 fi
 
                 echo "$(tt.params.containerregistry)/$(tt.params.imagename):$(echo $(tt.params.gitrevision) | head -c 7)" > $(workspaces.ws.path)/image
+            - name: test
+              image: $(tt.params.testimage)
+              onError: continue
+              script: |
+                #!/bin/sh
+
+                CANCEL_PIPELINE=$(cat $(steps.step-setup.exitCode.path))
+                if [ ${CANCEL_PIPELINE} -eq 1 ]; then
+                  echo "Pipeline cancelled. No changes detected in repo subpath of this container..."
+                  exit 0
+                fi
+
+                # Check if tests are enabled
+                if [ "$(tt.params.testenabled)" != "true" ]; then
+                  echo "Tests disabled via testenabled param, skipping..."
+                  exit 0
+                fi
+
+                export REPO_NAME=$(basename -s .git "$(tt.params.gitreponame)")
+                cd $(workspaces.ws.path)/${REPO_NAME}/$(tt.params.gitsubpath)
+
+                # If a custom test command is provided, use it
+                if [ -n "$(tt.params.testcommand)" ]; then
+                  echo "Running custom test command: $(tt.params.testcommand)"
+                  eval "$(tt.params.testcommand)"
+                  exit $?
+                fi
+
+                # Auto-detect project type and run appropriate test command
+                if [ -f "go.mod" ]; then
+                  echo "Detected Go project (go.mod found)"
+                  go test -v -race -count=1 ./...
+                  exit $?
+                fi
+
+                if [ -f "package.json" ]; then
+                  echo "Detected Node.js project (package.json found)"
+                  TEST_SCRIPT=$(cat package.json | grep -c '"test"')
+                  if [ ${TEST_SCRIPT} -gt 0 ]; then
+                    npm ci && npm test
+                    exit $?
+                  else
+                    echo "No test script found in package.json, skipping..."
+                    exit 0
+                  fi
+                fi
+
+                if [ -f "Cargo.toml" ]; then
+                  echo "Detected Rust project (Cargo.toml found)"
+                  cargo test
+                  exit $?
+                fi
+
+                if [ -f "pyproject.toml" ]; then
+                  echo "Detected Python project (pyproject.toml found)"
+                  pip install -e ".[test]" && pytest -v
+                  exit $?
+                fi
+
+                echo "No recognized project type detected, skipping tests..."
+                exit 0
             - name: build
               image: gcr.io/kaniko-project/executor:v1.21.1-debug
               script: |
@@ -171,6 +273,14 @@ spec:
                   echo "Pipeline cancelled. No changes detected in repo subpath of this container..."
                   exit 0
                 fi
+
+                # Check if tests failed
+                TEST_EXIT=$(cat $(steps.step-test.exitCode.path))
+                if [ ${TEST_EXIT} -ne 0 ]; then
+                  echo "Tests failed (exit code: ${TEST_EXIT}). Aborting build..."
+                  exit 1
+                fi
+
                 export IMAGE=$(cat $(workspaces.ws.path)/image)
                 export REPO_NAME=$(basename -s .git "$(tt.params.gitreponame)")
                 echo "Context: $(workspaces.ws.path)/${REPO_NAME}/$(tt.params.gitsubpath)"
@@ -199,6 +309,50 @@ spec:
                 kubectl set image $(tt.params.kind)/$(tt.params.resourcename) $(tt.params.resourcename)=${IMAGE} -n $(tt.params.resourcenamespace)
                 kubectl rollout status $(tt.params.kind)/$(tt.params.resourcename) -n $(tt.params.resourcenamespace) -w
                 kubectl annotate $(tt.params.kind)/$(tt.params.resourcename) kubernetes.io/change-cause="Update image to ${IMAGE}" -n $(tt.params.resourcenamespace)
+            - name: report-status
+              image: bitnamilegacy/git:2.44.0
+              script: |
+                #!/bin/bash
+                GITLAB_PAT="$(tt.params.gitlabpat)"
+                GIT_REVISION="$(tt.params.gitrevision)"
+                GITLAB_PROJECT_ID="$(tt.params.gitlabprojectid)"
+
+                if [ -z "${GITLAB_PROJECT_ID}" ] || [ -z "${GIT_REVISION}" ] || [ -z "${GITLAB_PAT}" ]; then
+                  echo "Missing required params for status reporting, skipping..."
+                  exit 0
+                fi
+
+                ENCODED_PROJECT_ID=$(echo "${GITLAB_PROJECT_ID}" | sed 's|/|%2F|g')
+
+                # Determine overall status from previous step exit codes
+                SETUP_EXIT=$(cat $(steps.step-setup.exitCode.path))
+                TEST_EXIT=$(cat $(steps.step-test.exitCode.path))
+                BUILD_EXIT=$(cat $(steps.step-build.exitCode.path))
+                DEPLOY_EXIT=$(cat $(steps.step-deploy.exitCode.path))
+
+                if [ ${SETUP_EXIT} -eq 1 ]; then
+                  STATE="success"
+                  DESCRIPTION="No changes detected, pipeline skipped"
+                elif [ ${TEST_EXIT} -ne 0 ]; then
+                  STATE="failed"
+                  DESCRIPTION="Tests failed (exit code: ${TEST_EXIT})"
+                elif [ ${BUILD_EXIT} -ne 0 ]; then
+                  STATE="failed"
+                  DESCRIPTION="Build failed (exit code: ${BUILD_EXIT})"
+                elif [ ${DEPLOY_EXIT} -ne 0 ]; then
+                  STATE="failed"
+                  DESCRIPTION="Deploy failed (exit code: ${DEPLOY_EXIT})"
+                else
+                  STATE="success"
+                  DESCRIPTION="Pipeline completed successfully"
+                fi
+
+                curl -s -X POST \
+                  -H "PRIVATE-TOKEN: ${GITLAB_PAT}" \
+                  -H "Content-Type: application/json" \
+                  "https://gitlab.com/api/v4/projects/${ENCODED_PROJECT_ID}/statuses/${GIT_REVISION}" \
+                  -d "{\"state\":\"${STATE}\",\"context\":\"hanzo-paas/ci\",\"name\":\"hanzo-paas/ci\",\"description\":\"${DESCRIPTION}\",\"target_url\":\"https://platform.hanzo.ai\"}"
+                echo "Posted ${STATE} commit status for ${GIT_REVISION}: ${DESCRIPTION}"
 ---
 apiVersion: v1
 kind: ServiceAccount
