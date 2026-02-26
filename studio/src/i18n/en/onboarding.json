@@ -1,5 +1,5 @@
 {
-	"welcome": "Welcome to Agnost",
+	"welcome": "Welcome to Hanzo",
 	"account_info": "Account Information",
 	"welcome_desc": "Through this onboarding flow, we will help you set up your cluster and create your organization and first project.",
 	"next": "Next",
@@ -8,7 +8,7 @@
 	"finish": "Finish",
 	"app": {
 		"title": "Create Your First App",
-		"desc": "In Agnost, you work on apps and their versions. An app is your workspace that packages all required design and configuration elements to run your backend app services."
+		"desc": "In Hanzo, you work on apps and their versions. An app is your workspace that packages all required design and configuration elements to run your backend app services."
 	},
 	"org": {
 		"title": "Create Your Organization",

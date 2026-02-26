@@ -40,7 +40,7 @@
 	"invite": {
 		"title": "Invite Team Members to Project",
 		"subTitle": "Invite Project Members",
-		"description": "Each project member can have different role assigned to authorize certain actions within the project itself. When you invite a new member to your project Agnost will create a unique link that you can share with the user. The user will be able to join the project by clicking on the link. You can view and copy the generated link from the pending invitations section and also revoke the invitation at any time.",
+		"description": "Each project member can have different role assigned to authorize certain actions within the project itself. When you invite a new member to your project Hanzo will create a unique link that you can share with the user. The user will be able to join the project by clicking on the link. You can view and copy the generated link from the pending invitations section and also revoke the invitation at any time.",
 		"delete": "Delete Invitation",
 		"deleteDesc": "Are you sure you want to delete this invitation? This action cannot be undone. The user will not be able to join the project."
 	},

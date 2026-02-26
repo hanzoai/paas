@@ -72,9 +72,9 @@ env:
   WEBHOOK: '${{ github.event.inputs.webhook }}'
   # GAR: Google Artifact Registry
   GAR_LOCATION: 'europe-docker.pkg.dev'
-  GAR_PROJECT: 'agnost-gitops'
+  GAR_PROJECT: 'hanzo-paas'
   GAR_NAME: 'images'
-  CHARTS_REPO: 'cloud-agnost/agnost-gitops-charts'
+  CHARTS_REPO: 'hanzoai/paas-charts'
 
 jobs:
   get_released_apps:

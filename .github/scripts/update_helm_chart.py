@@ -15,7 +15,7 @@ values_data = yaml.load(open(values_yaml).read())
 for app in applications:
     app_name = app['application']
     if app_name == 'webhook':
-        values_data['agnost-webhook']['image']['tag'] = app['version']
+        values_data['hanzo-webhook']['image']['tag'] = app['version']
     else:
         values_data[app_name]['tag'] = app['version']
 

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: registry
-  namespace: agnost
+  namespace: hanzo
 spec:
   ports:
     - port: 5000
@@ -19,7 +19,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: registry
-  namespace: agnost
+  namespace: hanzo
 spec:
   serviceName: registry
   replicas: 1

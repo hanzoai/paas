@@ -2,7 +2,7 @@ apiVersion: skaffold/v2beta14
 kind: Config
 build:
    artifacts:
-      - image:  cloudagnost/platform
+      - image:  hanzoai/platform
         context: ../platform
         sync:
            infer:
@@ -11,7 +11,7 @@ build:
               - '**/*.yaml'
         docker:
            dockerfile: Dockerfile.dev
-      - image: cloudagnost/sync
+      - image: hanzoai/sync
         context: ../sync
         sync:
            infer:
@@ -19,7 +19,7 @@ build:
               - '**/*.json'
         docker:
            dockerfile: Dockerfile.dev
-      - image: cloudagnost/monitor
+      - image: hanzoai/monitor
         context: ../monitor
         sync:
           infer:
@@ -27,7 +27,7 @@ build:
               - '**/*.json'
         docker:
           dockerfile: Dockerfile.dev
-      - image: cloudagnost/webhook
+      - image: hanzoai/webhook
         context: ../webhook
         sync:
           infer:
@@ -37,10 +37,9 @@ build:
 deploy:
    statusCheckDeadlineSeconds: 300
    kubectl:
-      defaultNamespace: agnost
+      defaultNamespace: hanzo
       manifests:
          - platform.yaml
          - monitor.yaml
          - sync.yaml
          - webhook.yaml
-

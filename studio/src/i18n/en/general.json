@@ -102,7 +102,7 @@
 	"status": "Status",
 	"slider": {
 		"faster": "Accelerate your app development journey with our cutting-edge <bold>vendor agnostic</bold> and <bold>fully open-source</bold> platform designed for rapid innovatio and unbeatable efficiency.",
-		"tools": "All-in-one backend development. <bold>Database, authentication, app server, realtime, cron jobs, message queues </bold> — it's all here. Agnost gives developers the technologies to build scalable & secure backend apps in minutes.",
+		"tools": "All-in-one backend development. <bold>Database, authentication, app server, realtime, cron jobs, message queues </bold> — it's all here. Hanzo gives developers the technologies to build scalable & secure backend apps in minutes.",
 		"database": "<bold>Build complex data models</bold> with relations, rich set of fields and built-in validation rules. Effortlessly manage your <bold>PostgreSQL, MySQL</bold> or <bold>MongoDB</bold> data with a powerful and intuitive user interface.",
 		"serverless": "Write simple, single-purpose functions that are attached to events emitted from your backend application. Your function is triggered when an event being watched is fired and your code is executed in a <bold>fully dedicated environment</bold> with <bold>auto-scaling capabilities</bold>.",
 		"queue": "Offload heavy computations from a parent service to a child one for <bold>asynchronous processing</bold> using <bold>RabbitMQ</bold> so that the parent service can return a response to the client faster and eventually improve response time.",

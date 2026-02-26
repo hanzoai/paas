@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
    name: monitor
-   namespace: agnost
+   namespace: hanzo
    labels:
       app: monitor
 spec:
@@ -18,7 +18,7 @@ spec:
          serviceAccountName: provisioner-sa
          containers:
             - name: monitor
-              image: cloudagnost/monitor:v4
+              image: hanzoai/monitor:v4
               # We will be using the minikube docker daemon, since the actual docker daemon on local machine are different
               # Prevent minikube docker daemon to pull images from central docker hub set imagePullPolicy to Never, so that
               imagePullPolicy: Never
@@ -43,14 +43,14 @@ spec:
                  - name: PASSPHRASE
                    valueFrom:
                       secretKeyRef:
-                         name: agnost
+                         name: hanzo
                          key: passPhrase
                  - name: MASTER_TOKEN
                    valueFrom:
                       secretKeyRef:
-                         name: agnost
+                         name: hanzo
                          key: masterToken
                  - name: NAMESPACE
-                   value: agnost
+                   value: hanzo
                  - name: RELEASE_NUMBER
                    value: "v0.0.2"

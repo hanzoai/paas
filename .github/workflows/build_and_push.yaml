@@ -14,7 +14,7 @@ on:
 env:
   # GAR: Google Artifact Registry
   GAR_LOCATION: 'europe-docker.pkg.dev'
-  GAR_PROJECT: 'agnost-gitops'
+  GAR_PROJECT: 'hanzo-paas'
   GAR_NAME: 'images'
 
 jobs:

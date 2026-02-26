@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: platform
-  namespace: agnost
+  namespace: hanzo
   labels:
     app: platform
 spec:
@@ -18,7 +18,7 @@ spec:
       serviceAccountName: provisioner-sa
       containers:
         - name: platform
-          image:  cloudagnost/platform:v4
+          image:  hanzoai/platform:v4
           imagePullPolicy: Never
           ports:
             - containerPort: 4000
@@ -51,22 +51,22 @@ spec:
             - name: PASSPHRASE
               valueFrom:
                 secretKeyRef:
-                  name: agnost
+                  name: hanzo
                   key: passPhrase
             - name: CLUSTER_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: agnost
+                  name: hanzo
                   key: clusterAccessToken
             - name: MASTER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: agnost
+                  name: hanzo
                   key: masterToken
             - name: CLUSTER_SLUG
               valueFrom:
                 secretKeyRef:
-                  name: agnost
+                  name: hanzo
                   key: clusterSlug
             - name: GROUP_NAME
               value: "hanzo.ai"
@@ -95,17 +95,14 @@ spec:
                   name: storage
                   key: secretKey
             - name: WEBHOOK_NAMESPACE
-              value: agnost
+              value: hanzo
             - name: WEBHOOK_SERVICE
-              value: "agnost-webhook"
+              value: "hanzo-webhook"
             - name: NGINX_NAMESPACE
               value: "ingress-nginx"
             - name: CERT_MANAGER_NAMESPACE
               value: "cert-manager"
             - name: NAMESPACE
-              value: agnost
+              value: hanzo
             - name: RELEASE_NUMBER
               value: "v0.0.2"
-    
-
-

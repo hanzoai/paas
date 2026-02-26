@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: agnost-webhook
-  namespace: agnost
+  name: hanzo-webhook
+  namespace: hanzo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: agnost-webhook
-      release: agnost
+      app: hanzo-webhook
+      release: hanzo
   template:
     metadata:
       labels:
-        app: agnost-webhook
-        release: agnost
+        app: hanzo-webhook
+        release: hanzo
     spec:
-      serviceAccountName: agnost-webhook
+      serviceAccountName: hanzo-webhook
       containers:
-        - name: agnost-webhook
-          image:  cloudagnost/webhook:v4
+        - name: hanzo-webhook
+          image:  hanzoai/webhook:v4
           imagePullPolicy: Never
           args:
             - --tls-cert-file=/tls/tls.crt
@@ -54,4 +54,4 @@ spec:
       volumes:
         - name: certs
           secret:
-            secretName: agnost-webhook-webhook-tls
+            secretName: hanzo-webhook-webhook-tls
