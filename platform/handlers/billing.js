@@ -2,8 +2,8 @@ import axios from "axios";
 import orgCtrl from "../controllers/organization.js";
 import { getDropletPricing, getDOKSCluster } from "./provisioner.js";
 
-const DOKS_BASE_COST = 12; // $12/mo base DOKS control plane
-const HA_MONTHLY_COST = 40; // $40/mo additional for HA control plane
+const DOKS_BASE_COST = parseFloat(process.env.DOKS_BASE_COST || "12");
+const HA_MONTHLY_COST = parseFloat(process.env.DOKS_HA_MONTHLY_COST || "40");
 const MARKUP_PERCENT = parseFloat(process.env.PAAS_MARKUP_PERCENT || "0");
 
 // Cache pricing lookups for 1 hour
