@@ -95,7 +95,8 @@ export default function LaunchVMPage() {
   const handleLaunch = () => {
     if (!selectedPlan || !region || !name) return
     launchMutation.mutate({
-      plan: selectedPlan,
+      provider: 'digitalocean' as const,
+      size: selectedPlan,
       region,
       name,
     })
@@ -225,7 +226,7 @@ export default function LaunchVMPage() {
               </SelectTrigger>
               <SelectContent>
                 {regions.map((r) => (
-                  <SelectItem key={r.id} value={r.id} disabled={!r.available}>
+                  <SelectItem key={r.id} value={r.id}>
                     {r.name} — {r.location}
                   </SelectItem>
                 ))}
