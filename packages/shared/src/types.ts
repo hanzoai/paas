@@ -117,6 +117,7 @@ export interface ContainerSpec {
   deploymentConfig?: DeploymentStrategyConfig
   statefulSetConfig?: StatefulSetConfig
   cronJobConfig?: CronJobConfig
+  staticSiteConfig?: StaticSiteConfig
   probes?: ProbesConfig
 }
 

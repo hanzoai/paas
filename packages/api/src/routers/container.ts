@@ -46,7 +46,7 @@ export const containerRouter = router({
       environmentId: z.string(),
       clusterId: z.string(),
       name: z.string().min(2).max(64),
-      type: z.enum(['deployment', 'statefulset', 'cronjob']),
+      type: z.enum(['deployment', 'statefulset', 'cronjob', 'static-site']),
       sourceType: z.enum(['repo', 'registry']).default('repo'),
       repoConfig: z.object({
         provider: z.string().optional(),
@@ -77,6 +77,14 @@ export const containerRouter = router({
       deploymentConfig: z.object({
         replicas: z.number().default(1),
         strategy: z.enum(['RollingUpdate', 'Recreate']).default('RollingUpdate'),
+      }).optional(),
+      staticSiteConfig: z.object({
+        buildCommand: z.string(),
+        outputDir: z.string(),
+        installCommand: z.string().optional(),
+        nodeVersion: z.string().optional(),
+        framework: z.string().optional(),
+        envVars: z.record(z.string()).optional(),
       }).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -154,6 +162,7 @@ export const containerRouter = router({
         networking: input.networking ?? { containerPort: 80 },
         podConfig: input.podConfig ?? { cpuRequest: 100, cpuLimit: 500, memoryRequest: 128, memoryLimit: 512, restartPolicy: 'Always' as const },
         deploymentConfig: input.deploymentConfig ?? { replicas: 1, strategy: 'RollingUpdate' as const },
+        staticSiteConfig: input.staticSiteConfig ?? null,
         variables: input.variables,
         createdBy: ctx.user.id,
       }).returning()

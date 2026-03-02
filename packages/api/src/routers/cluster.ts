@@ -50,18 +50,19 @@ export const clusterRouter = router({
       return cluster
     }),
 
-  // Register a new cluster (K8s, Docker Swarm, or Docker Compose)
+  // Register a new cluster (K8s, Docker Swarm, Docker Compose, Cloudflare Pages, or GitHub Pages)
   register: orgProcedure
     .input(z.object({
       orgId: z.string(),
       name: z.string().min(2).max(64),
-      type: z.enum(['kubernetes', 'docker-swarm', 'docker-compose']),
-      provider: z.enum(['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local']),
+      type: z.enum(['kubernetes', 'docker-swarm', 'docker-compose', 'cloudflare-pages', 'github-pages']),
+      provider: z.enum(['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local', 'cloudflare', 'github']),
       endpoint: z.string().optional(),
       kubeconfig: z.string().optional(),
       tlsCert: z.string().optional(),
       tlsKey: z.string().optional(),
       tlsCa: z.string().optional(),
+      cloudMeta: z.record(z.unknown()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const slug = `${input.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')}-${Date.now().toString(36)}`
@@ -77,6 +78,7 @@ export const clusterRouter = router({
         tlsCert: input.tlsCert,
         tlsKey: input.tlsKey,
         tlsCa: input.tlsCa,
+        cloudMeta: input.cloudMeta,
         orgId: input.orgId,
         createdBy: ctx.user.id,
       }).returning()

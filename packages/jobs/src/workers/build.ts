@@ -2,9 +2,38 @@ import { Worker, type Job } from '@hanzo/mq'
 import { eq } from 'drizzle-orm'
 import { db } from '@paas/db/client'
 import { deployments, containers, clusters } from '@paas/db/schema'
-import { createOrchestrator, type K8sConnection, type DockerConnection } from '@paas/orchestrator'
+import { createOrchestrator, type K8sConnection, type DockerConnection, type CloudflarePagesConnection, type GitHubPagesConnection } from '@paas/orchestrator'
 import type { BuildSpec, DeployStatus } from '@paas/shared'
 import { connection } from '../queues'
+
+function orchestratorFromCluster(cluster: typeof clusters.$inferSelect) {
+  switch (cluster.type) {
+    case 'kubernetes':
+      return createOrchestrator({
+        clusterType: 'kubernetes',
+        connection: { kind: 'kubernetes', kubeconfig: cluster.kubeconfig ?? '' } satisfies K8sConnection,
+      })
+    case 'cloudflare-pages': {
+      const meta = cluster.cloudMeta as { accountId?: string; apiToken?: string } | null
+      return createOrchestrator({
+        clusterType: 'cloudflare-pages',
+        connection: { kind: 'cloudflare-pages', accountId: meta?.accountId ?? '', apiToken: meta?.apiToken ?? '' } satisfies CloudflarePagesConnection,
+      })
+    }
+    case 'github-pages': {
+      const meta = cluster.cloudMeta as { token?: string; owner?: string } | null
+      return createOrchestrator({
+        clusterType: 'github-pages',
+        connection: { kind: 'github-pages', token: meta?.token ?? '', owner: meta?.owner ?? '' } satisfies GitHubPagesConnection,
+      })
+    }
+    default:
+      return createOrchestrator({
+        clusterType: cluster.type,
+        connection: { kind: 'docker', host: cluster.endpoint ?? '', tlsCert: cluster.tlsCert ?? undefined, tlsKey: cluster.tlsKey ?? undefined, tlsCa: cluster.tlsCa ?? undefined } satisfies DockerConnection,
+      })
+  }
+}
 
 // ---- Job payload ----
 
@@ -55,12 +84,7 @@ async function processBuild(job: Job<BuildJobData>): Promise<void> {
   await setDeployStatus(deploymentId, 'building', { startedAt: new Date() })
 
   // 3. Construct orchestrator from cluster record
-  const orchestrator = createOrchestrator({
-    clusterType: cluster.type,
-    connection: cluster.type === 'kubernetes'
-      ? { kind: 'kubernetes', kubeconfig: cluster.kubeconfig ?? '' } satisfies K8sConnection
-      : { kind: 'docker', host: cluster.endpoint ?? '', tlsCert: cluster.tlsCert ?? undefined, tlsKey: cluster.tlsKey ?? undefined, tlsCa: cluster.tlsCa ?? undefined } satisfies DockerConnection,
-  })
+  const orchestrator = orchestratorFromCluster(cluster)
 
   // 4. Build
   const repoConfig = container.repoConfig as BuildSpec['repo'] | null
