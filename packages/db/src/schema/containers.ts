@@ -15,9 +15,10 @@ import type {
   ProbesConfig,
   RepoConfig,
   RegistryConfig,
+  StaticSiteConfig,
 } from '@paas/shared'
 
-export const containerTypeEnum = pgEnum('container_type', ['deployment', 'statefulset', 'cronjob'])
+export const containerTypeEnum = pgEnum('container_type', ['deployment', 'statefulset', 'cronjob', 'static-site'])
 export const sourceTypeEnum = pgEnum('source_type', ['repo', 'registry'])
 
 export const containers = pgTable('containers', {
@@ -45,6 +46,7 @@ export const containers = pgTable('containers', {
   deploymentConfig: jsonb('deployment_config').$type<DeploymentStrategyConfig>(),
   statefulSetConfig: jsonb('stateful_set_config').$type<StatefulSetConfig>(),
   cronJobConfig:   jsonb('cron_job_config').$type<CronJobConfig>(),
+  staticSiteConfig: jsonb('static_site_config').$type<StaticSiteConfig | null>(),
   probes:          jsonb('probes').$type<ProbesConfig>(),
   variables:       jsonb('variables').$type<Array<{ name: string; value: string }>>(),
 

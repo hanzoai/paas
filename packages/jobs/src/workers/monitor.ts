@@ -2,7 +2,14 @@ import { Worker, type Job } from '@hanzo/mq'
 import { eq, isNotNull } from 'drizzle-orm'
 import { db } from '@paas/db/client'
 import { containers, clusters } from '@paas/db/schema'
-import { createOrchestrator, type K8sConnection, type DockerConnection, type IOrchestrator } from '@paas/orchestrator'
+import {
+  createOrchestrator,
+  type K8sConnection,
+  type DockerConnection,
+  type CloudflarePagesConnection,
+  type GitHubPagesConnection,
+  type IOrchestrator,
+} from '@paas/orchestrator'
 import { connection, monitorQueue } from '../queues'
 
 // ---- Job payload ----
@@ -18,22 +25,52 @@ const orchestratorCache = new Map<string, IOrchestrator>()
 
 function getOrCreateOrchestrator(cluster: {
   id: string
-  type: 'kubernetes' | 'docker-swarm' | 'docker-compose'
+  type: 'kubernetes' | 'docker-swarm' | 'docker-compose' | 'cloudflare-pages' | 'github-pages'
   kubeconfig: string | null
   endpoint: string | null
   tlsCert: string | null
   tlsKey: string | null
   tlsCa: string | null
+  cloudMeta: unknown
 }): IOrchestrator {
   const cached = orchestratorCache.get(cluster.id)
   if (cached) return cached
 
-  const orch = createOrchestrator({
-    clusterType: cluster.type,
-    connection: cluster.type === 'kubernetes'
-      ? { kind: 'kubernetes', kubeconfig: cluster.kubeconfig ?? '' } satisfies K8sConnection
-      : { kind: 'docker', host: cluster.endpoint ?? '', tlsCert: cluster.tlsCert ?? undefined, tlsKey: cluster.tlsKey ?? undefined, tlsCa: cluster.tlsCa ?? undefined } satisfies DockerConnection,
-  })
+  let orch: IOrchestrator
+
+  switch (cluster.type) {
+    case 'kubernetes':
+      orch = createOrchestrator({
+        clusterType: 'kubernetes',
+        connection: { kind: 'kubernetes', kubeconfig: cluster.kubeconfig ?? '' } satisfies K8sConnection,
+      })
+      break
+    case 'docker-swarm':
+    case 'docker-compose':
+      orch = createOrchestrator({
+        clusterType: cluster.type,
+        connection: { kind: 'docker', host: cluster.endpoint ?? '', tlsCert: cluster.tlsCert ?? undefined, tlsKey: cluster.tlsKey ?? undefined, tlsCa: cluster.tlsCa ?? undefined } satisfies DockerConnection,
+      })
+      break
+    case 'cloudflare-pages': {
+      const meta = cluster.cloudMeta as { accountId?: string; apiToken?: string } | null
+      orch = createOrchestrator({
+        clusterType: 'cloudflare-pages',
+        connection: { kind: 'cloudflare-pages', accountId: meta?.accountId ?? '', apiToken: meta?.apiToken ?? '' } satisfies CloudflarePagesConnection,
+      })
+      break
+    }
+    case 'github-pages': {
+      const meta = cluster.cloudMeta as { token?: string; owner?: string } | null
+      orch = createOrchestrator({
+        clusterType: 'github-pages',
+        connection: { kind: 'github-pages', token: meta?.token ?? '', owner: meta?.owner ?? '' } satisfies GitHubPagesConnection,
+      })
+      break
+    }
+    default:
+      throw new Error(`Unsupported cluster type: ${cluster.type}`)
+  }
 
   orchestratorCache.set(cluster.id, orch)
   return orch

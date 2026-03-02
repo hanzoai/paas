@@ -9,7 +9,9 @@
     "./k8s": "./src/k8s/adapter.ts",
     "./k8s/tekton": "./src/k8s/tekton.ts",
     "./k8s/provisioner": "./src/k8s/provisioner.ts",
-    "./docker": "./src/docker/adapter.ts"
+    "./docker": "./src/docker/adapter.ts",
+    "./cloudflare": "./src/cloudflare/adapter.ts",
+    "./github-pages": "./src/github-pages/adapter.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

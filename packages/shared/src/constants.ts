@@ -1,10 +1,10 @@
-export const CLUSTER_TYPES = ['kubernetes', 'docker-swarm', 'docker-compose'] as const
+export const CLUSTER_TYPES = ['kubernetes', 'docker-swarm', 'docker-compose', 'cloudflare-pages', 'github-pages'] as const
 export type ClusterType = (typeof CLUSTER_TYPES)[number]
 
-export const CLUSTER_PROVIDERS = ['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local'] as const
+export const CLUSTER_PROVIDERS = ['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local', 'cloudflare', 'github'] as const
 export type ClusterProvider = (typeof CLUSTER_PROVIDERS)[number]
 
-export const CONTAINER_TYPES = ['deployment', 'statefulset', 'cronjob'] as const
+export const CONTAINER_TYPES = ['deployment', 'statefulset', 'cronjob', 'static-site'] as const
 export type ContainerType = (typeof CONTAINER_TYPES)[number]
 
 export const SOURCE_TYPES = ['repo', 'registry'] as const

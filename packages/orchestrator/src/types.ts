@@ -31,17 +31,29 @@ export interface DockerConnection {
   tlsCa?: string
 }
 
-export type OrchestratorConnection = K8sConnection | DockerConnection
+export interface CloudflarePagesConnection {
+  kind: 'cloudflare-pages'
+  accountId: string       // Cloudflare account ID
+  apiToken: string        // Cloudflare API token (scoped to Pages)
+}
+
+export interface GitHubPagesConnection {
+  kind: 'github-pages'
+  token: string           // GitHub personal access token or app token
+  owner: string           // GitHub user or org
+}
+
+export type OrchestratorConnection = K8sConnection | DockerConnection | CloudflarePagesConnection | GitHubPagesConnection
 
 export interface OrchestratorConfig {
-  clusterType: 'kubernetes' | 'docker-swarm' | 'docker-compose'
+  clusterType: 'kubernetes' | 'docker-swarm' | 'docker-compose' | 'cloudflare-pages' | 'github-pages'
   connection: OrchestratorConnection
 }
 
 // ---- The core abstraction: one interface, multiple backends ----
 
 export interface IOrchestrator {
-  readonly type: 'kubernetes' | 'docker-swarm' | 'docker-compose'
+  readonly type: 'kubernetes' | 'docker-swarm' | 'docker-compose' | 'cloudflare-pages' | 'github-pages'
 
   // Namespace / network isolation
   createNamespace(name: string): Promise<void>

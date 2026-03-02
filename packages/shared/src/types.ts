@@ -55,6 +55,15 @@ export interface CronJobConfig {
   failedJobsHistoryLimit: number
 }
 
+export interface StaticSiteConfig {
+  buildCommand: string           // e.g., "npm run build"
+  outputDir: string              // e.g., "dist" or "build"
+  installCommand?: string        // e.g., "npm install"
+  nodeVersion?: string           // e.g., "20"
+  framework?: string             // e.g., "nextjs", "vite", "astro"
+  envVars?: Record<string, string>
+}
+
 export interface ProbeConfig {
   enabled: boolean
   type: 'httpGet' | 'tcpSocket' | 'exec'

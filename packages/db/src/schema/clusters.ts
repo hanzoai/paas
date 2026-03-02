@@ -5,8 +5,8 @@ import { organizations } from './organizations'
 
 // Multi-cluster fleet: mix K8s + Docker Swarm + Docker Compose clusters freely
 // Each org can have N clusters of any type, managed from one dashboard
-export const clusterTypeEnum = pgEnum('cluster_type', ['kubernetes', 'docker-swarm', 'docker-compose'])
-export const clusterProviderEnum = pgEnum('cluster_provider', ['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local'])
+export const clusterTypeEnum = pgEnum('cluster_type', ['kubernetes', 'docker-swarm', 'docker-compose', 'cloudflare-pages', 'github-pages'])
+export const clusterProviderEnum = pgEnum('cluster_provider', ['digitalocean', 'aws', 'gcp', 'azure', 'hetzner', 'bare-metal', 'local', 'cloudflare', 'github'])
 export const clusterStatusEnum = pgEnum('cluster_status', ['provisioning', 'running', 'error', 'destroying', 'offline'])
 
 export const clusters = pgTable('clusters', {
