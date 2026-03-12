@@ -1,5 +1,5 @@
 # build stage
-FROM golang:1.21 AS build
+FROM golang:1.24 AS build
 
 WORKDIR /workspace
 
@@ -10,7 +10,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 go build -o webhook -ldflags '-w -extldflags "-static"' .
 
 # final stage
-FROM alpine:3.18
+FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates
 
